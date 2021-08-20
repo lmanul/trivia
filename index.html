@@ -6,11 +6,18 @@
 </head>
 <body>
 
+  <h1>Trivia</h1>
+
   <script>
-    let ws = new WebSocket('ws://localhost:8080');
+    let clientId;
+    let ws = new WebSocket('ws://localhost:7071');
     ws.onmessage = message => {
       console.log('Message from server');
       const response = JSON.parse(message.data);
+      if (response.method === 'connect') {
+        clientId = response.clientId;
+        console.log('I am client ' + clientId);
+      }
       console.log(response);
     };
   </script>

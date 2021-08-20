@@ -1,13 +1,13 @@
-const http = require("http");
-const app = require('express');
-app.listen(8081, () => { console.log('Listening on 8081'); });
+const http = require('http');
+const app = require('express')();
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
+app.listen(7070, () => { console.log('Listening on 7070'); });
 const WebSocketServer = require('websocket').server
 const httpServer = http.createServer();
 
-httpServer.listen(8080, () => { console.log('Listening on port 8080'); })
+httpServer.listen(7071, () => { console.log('Listening on port 7071'); })
 
 const clients = {};
 
@@ -26,8 +26,7 @@ wsServer.on('request', request => {
     console.log(result);
   });
 
-  // Generate a new client id
-  const clientId = 'test';
+  const clientId = 'id-' + Object.keys(clients).length;
   clients[clientId] = {
     'connection': connection
   };
