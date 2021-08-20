@@ -26,13 +26,17 @@ wsServer.on('request', request => {
     console.log(result);
   });
 
-  const clientId = 'id-' + Object.keys(clients).length;
+  const nClients = Object.keys(clients).length;
+  const clientId = 'id-' + nClients;
   clients[clientId] = {
-    'connection': connection
+    'connection': connection,
+    // First client is the master
+    'master': (nClients === 0)
   };
   const payload = {
     'method': 'connect',
-    'clientId': clientId
+    'clientId': clientId,
+    'master': clients[clientId].master
   };
 
   connection.send(JSON.stringify(payload));
