@@ -3,23 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <title>Trivia</title>
+
+  <style>
+    #team-data-chooser {
+        display: none;
+    }
+
+    #welcome {
+        display: none;
+    }
+  </style>
 </head>
 <body>
 
   <h1>Trivia</h1>
 
+  <div id="">
+
+  <div id="team-data-chooser">
+    <input type="file" id="team-data-file-input" />
+  </div>
+
+  <div id="welcome">
+    <h2>Welcome!</h2>
+  </div>
+
   <script>
     let clientId;
     let ws = new WebSocket('ws://localhost:7071');
-    ws.onmessage = message => {
+    ws.onmessage = handleMessage;
+
+    function renderTeamDataChooser() {
+      const chooserEl = document.getElementById('team-data-chooser');
+      chooserEl.style.display = 'block';
+      console.log(ws);
+      chooserEl.addEventListener('change', function(e) {
+        console.log('File changed');
+
+        var file = e.target.files[0];
+        if (!file) {
+          return;
+        }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          let contents = e.target.result;
+          let message = {
+            'method': 'team',
+            'payload': contents
+          }
+          console.log('Sending to server ' + JSON.stringify(message));
+          ws.send(JSON.stringify(message));
+          //ws.send(JSON.stringify({'method': 'hello'}));
+        };
+        reader.readAsText(file);
+
+        chooserEl.style.display = 'none';
+      }, false);
+    }
+
+    function renderWelcome() {
+      const welcomeEl = document.getElementById('welcome');
+      welcomeEl.style.display = 'block';
+    }
+
+    function handleMessage(message) {
       console.log('Message from server');
       const response = JSON.parse(message.data);
       if (response.method === 'connect') {
         clientId = response.clientId;
         console.log('I am client ' + clientId);
+        console.log(response);
+        if (response.master) {
+          renderTeamDataChooser();
+        }
       }
-      console.log(response);
-    };
+    }
+
   </script>
 
 </body>
