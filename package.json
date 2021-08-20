@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/lmanul/trivia/issues"
   },
-  "homepage": "https://github.com/lmanul/trivia#readme"
+  "homepage": "https://github.com/lmanul/trivia#readme",
+  "dependencies": {
+    "websocket": "^1.0.34"
+  }
 }
