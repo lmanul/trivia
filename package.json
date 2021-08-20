@@ -1,0 +1,19 @@
+{
+  "name": "trivia",
+  "version": "1.0.0",
+  "description": "Team trivia game driver",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lmanul/trivia.git"
+  },
+  "author": "Manu Cornet",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lmanul/trivia/issues"
+  },
+  "homepage": "https://github.com/lmanul/trivia#readme"
+}
