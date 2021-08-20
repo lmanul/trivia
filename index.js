@@ -1,4 +1,9 @@
 const http = require("http");
+const app = require('express');
+app.listen(8081, () => { console.log('Listening on 8081'); });
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
 const WebSocketServer = require('websocket').server
 const httpServer = http.createServer();
 
@@ -17,7 +22,8 @@ wsServer.on('request', request => {
   connection.on('close', () => { console.log('Closed'); });
   connection.on('message', message => {
     console.log('Got message');
-    console.log(message);
+    const result = JSON.parse(message.utf8Data);
+    console.log(result);
   });
 
   // Generate a new client id
@@ -25,4 +31,10 @@ wsServer.on('request', request => {
   clients[clientId] = {
     'connection': connection
   };
+  const payload = {
+    'method': 'connect',
+    'clientId': clientId
+  };
+
+  connection.send(JSON.stringify(payload));
 });

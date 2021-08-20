@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="end">
+<head>
+  <meta charset="UTF-8">
+  <title>Trivia</title>
+</head>
+<body>
+
+  <script>
+    let ws = new WebSocket('ws://localhost:8080');
+    ws.onmessage = message => {
+      console.log('Message from server');
+      const response = JSON.parse(message.data);
+      console.log(response);
+    };
+  </script>
+
+</body>
+</html>
