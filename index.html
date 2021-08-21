@@ -130,7 +130,6 @@
             'method': 'team',
             'payload': contents
           }
-          console.log('Sending to server ' + JSON.stringify(message));
           ws.send(JSON.stringify(message));
         };
         reader.readAsText(file);
