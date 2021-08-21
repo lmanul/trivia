@@ -46,7 +46,10 @@ function getConnectedLdaps() {
 
 function broadcastBoard() {
   for (const [clientId, clientInfo] of Object.entries(clients)) {
-    sendBoard(clientInfo.connection);
+    if (!!clientInfo.ldap) {
+      // Don't send the board if the client hasn't identified themselves yet.
+      sendBoard(clientInfo.connection);
+    }
   }
 }
 
