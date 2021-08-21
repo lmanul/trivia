@@ -100,12 +100,24 @@
       selectScreen('loading');
     }
 
+    function getAvatar(ldap) {
+      let personEl = document.createElement('div');
+      personEl.setAttribute('data', ldap);
+      let avatarEl = document.createElement('img');
+      personEl.classList.add('avatar-sm');
+      let nameEl = document.createElement('div');
+      nameEl.textContent = team[ldap].name;
+      avatarEl.setAttribute('src',
+                            'data:image/png;base64,' + team[ldap].avatar);
+      personEl.appendChild(avatarEl);
+      personEl.appendChild(nameEl);
+      return personEl;
+    }
+
     function renderTeamDataChooser() {
       selectScreen('team-data-chooser');
       const chooserEl = document.getElementById('team-data-chooser');
-      console.log(ws);
       chooserEl.addEventListener('change', function(e) {
-        console.log('File changed');
 
         var file = e.target.files[0];
         if (!file) {
@@ -135,16 +147,7 @@
       let ldaps = Object.keys(team);
       for (let i = 0; i < ldaps.length; i++) {
         const ldap = ldaps[i];
-        let personEl = document.createElement('div');
-        personEl.setAttribute('data', ldap);
-        let avatarEl = document.createElement('img');
-        personEl.classList.add('avatar-sm');
-        let nameEl = document.createElement('div');
-        nameEl.textContent = team[ldap].name;
-        avatarEl.setAttribute('src',
-                              'data:image/png;base64,' + team[ldap].avatar);
-        personEl.appendChild(avatarEl);
-        personEl.appendChild(nameEl);
+        let personEl = getAvatar(ldap);
         welcomeEl.appendChild(personEl);
         personEl.onclick = function(e) {
           myLdap = ldap;
