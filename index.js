@@ -44,11 +44,15 @@ function getConnectedLdaps() {
   return ldaps;
 }
 
+function broadcastBoard() {
+  for (const [clientId, clientInfo] of Object.entries(clients)) {
+    sendBoard(clientInfo.connection);
+  }
+}
+
 function sendBoard(connection) {
 
   const connectedLdaps = getConnectedLdaps();
-  console.log('Connected LDAPs');
-  console.log(connectedLdaps);
   for (let ldap of connectedLdaps) {
     if (!scores.hasOwnProperty(ldap)) {
       scores[ldap] = 0;
@@ -76,8 +80,7 @@ wsServer.on('request', request => {
     if (result.method === 'whoami') {
       console.log('This client says they are: ' + result.payload);
       clients[clientId].ldap = result.payload;
-      console.log(clients);
-      sendBoard(connection);
+      broadcastBoard();
     }
   });
 
