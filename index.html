@@ -17,6 +17,10 @@
         text-align: center;
     }
 
+    h2 {
+        text-align: center;
+    }
+
     .screen {
         display: none;
     }
@@ -70,9 +74,13 @@
     <h2>Welcome! Please tell me who you are 😃</h2>
   </div>
 
+  <div id="board" class="screen">
+  </div>
+
   <script>
     let clientId;
     let team;
+    let myLdap;
     let ws = new WebSocket('ws://localhost:7071');
     ws.onmessage = handleMessage;
 
@@ -128,6 +136,7 @@
       for (let i = 0; i < ldaps.length; i++) {
         const ldap = ldaps[i];
         let personEl = document.createElement('div');
+        personEl.setAttribute('data', ldap);
         let avatarEl = document.createElement('img');
         personEl.classList.add('avatar-sm');
         let nameEl = document.createElement('div');
@@ -137,7 +146,19 @@
         personEl.appendChild(avatarEl);
         personEl.appendChild(nameEl);
         welcomeEl.appendChild(personEl);
+        personEl.onclick = function(e) {
+          myLdap = ldap;
+          ws.send(JSON.stringify({
+            'method': 'whoami',
+            'payload': ldap,
+          }));
+        }
       }
+    }
+
+    function renderBoard(scores) {
+      selectScreen('board');
+      console.log(scores);
     }
 
     function handleMessage(message) {
@@ -155,6 +176,9 @@
             renderTeamDataChooser();
           }
         }
+      }
+      if (response.method === 'board') {
+        renderBoard(response.scores);
       }
     }
 

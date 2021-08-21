@@ -11,6 +11,7 @@ httpServer.listen(7071, () => { console.log('Listening on port 7071'); })
 
 const clients = {};
 let team;
+let scores = {};
 
 const wsServer = new WebSocketServer({
   'httpServer': httpServer,
@@ -29,6 +30,36 @@ function sendWelcome(clientId, connection) {
   connection.send(JSON.stringify(payload));
 }
 
+function getConnectedLdaps() {
+  let ldaps = [];
+  for (let i = 0; i < Object.keys(team).length; i++) {
+    let ldap = Object.keys(team)[i];
+    for (let j = 0; j < Object.keys(clients).length; j++) {
+      const clientId = Object.keys(clients)[j];
+      if (!!clients[clientId].ldap && clients[clientId].ldap === ldap) {
+        ldaps.push(ldap);
+      }
+    }
+  }
+  return ldaps;
+}
+
+function sendBoard(connection) {
+
+  const connectedLdaps = getConnectedLdaps();
+  console.log('Connected LDAPs');
+  console.log(connectedLdaps);
+  for (let ldap of connectedLdaps) {
+    if (!scores.hasOwnProperty(ldap)) {
+      scores[ldap] = 0;
+    }
+  }
+  connection.send(JSON.stringify({
+    'method': 'board',
+    'scores': scores
+  }));
+}
+
 wsServer.on('request', request => {
 
   const connection = request.accept(null, request.origin);
@@ -41,6 +72,12 @@ wsServer.on('request', request => {
       team = JSON.parse(result.payload);
       console.log('Got team info. ' + Object.keys(team).length + ' members');
       sendWelcome(clientId, connection);
+    }
+    if (result.method === 'whoami') {
+      console.log('This client says they are: ' + result.payload);
+      clients[clientId].ldap = result.payload;
+      console.log(clients);
+      sendBoard(connection);
     }
   });
 
