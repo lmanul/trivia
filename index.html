@@ -5,37 +5,96 @@
   <title>Trivia</title>
 
   <style>
-    #team-data-chooser {
+
+    body {
+        background: #eee;
+        font-family: Roboto, Arial;
+        margin: 40px;
+    }
+
+    h1 {
+        background: white;
+        text-align: center;
+    }
+
+    .screen {
         display: none;
+    }
+
+    .avatar-sm {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        display: inline-block;
+        height: 90px;
+        margin: 10px;
+        padding: 10px;
+        text-align: center;
+        width: 90px;
+    }
+
+    .avatar-sm img {
+        width: 64px;
+    }
+
+    .avatar-sm div {
+    }
+
+    #team-data-chooser {
     }
 
     #welcome {
-        display: none;
     }
+
+    #welcome .avatar-sm {
+        cursor: pointer;
+    }
+
+    #welcome .avatar-sm:hover {
+        border: 1px solid #007cff;
+    }
+
   </style>
 </head>
-<body>
+<body onload="init()">
 
   <h1>Trivia</h1>
 
-  <div id="">
+  <div id="loading" class="screen">Loading...</div>
 
-  <div id="team-data-chooser">
+  <div id="team-data-chooser" class="screen">
     <input type="file" id="team-data-file-input" />
   </div>
 
-  <div id="welcome">
-    <h2>Welcome!</h2>
+  <div id="welcome" class="screen">
+    <h2>Welcome! Please tell me who you are 😃</h2>
   </div>
 
   <script>
     let clientId;
+    let team;
     let ws = new WebSocket('ws://localhost:7071');
     ws.onmessage = handleMessage;
 
+    function selectScreen(screenId) {
+      const screenEls = document.querySelectorAll('.screen');
+
+      for (let i = 0, screen; screen = screenEls[i]; i++) {
+        if (screen.getAttribute('id') === screenId) {
+          screen.style.display = 'block';
+        } else {
+          screen.style.display = 'none';
+        }
+      }
+    }
+
+    function init() {
+      selectScreen('loading');
+    }
+
     function renderTeamDataChooser() {
+      selectScreen('team-data-chooser');
       const chooserEl = document.getElementById('team-data-chooser');
-      chooserEl.style.display = 'block';
       console.log(ws);
       chooserEl.addEventListener('change', function(e) {
         console.log('File changed');
@@ -53,7 +112,6 @@
           }
           console.log('Sending to server ' + JSON.stringify(message));
           ws.send(JSON.stringify(message));
-          //ws.send(JSON.stringify({'method': 'hello'}));
         };
         reader.readAsText(file);
 
@@ -62,8 +120,24 @@
     }
 
     function renderWelcome() {
+      selectScreen('welcome');
       const welcomeEl = document.getElementById('welcome');
       welcomeEl.style.display = 'block';
+
+      let ldaps = Object.keys(team);
+      for (let i = 0; i < ldaps.length; i++) {
+        const ldap = ldaps[i];
+        let personEl = document.createElement('div');
+        let avatarEl = document.createElement('img');
+        personEl.classList.add('avatar-sm');
+        let nameEl = document.createElement('div');
+        nameEl.textContent = team[ldap].name;
+        avatarEl.setAttribute('src',
+                              'data:image/png;base64,' + team[ldap].avatar);
+        personEl.appendChild(avatarEl);
+        personEl.appendChild(nameEl);
+        welcomeEl.appendChild(personEl);
+      }
     }
 
     function handleMessage(message) {
@@ -73,8 +147,13 @@
         clientId = response.clientId;
         console.log('I am client ' + clientId);
         console.log(response);
-        if (response.master) {
-          renderTeamDataChooser();
+        if (!!response.team) {
+          team = response.team;
+          renderWelcome();
+        } else {
+          if (response.master) {
+            renderTeamDataChooser();
+          }
         }
       }
     }

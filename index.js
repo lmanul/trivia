@@ -18,7 +18,19 @@ const wsServer = new WebSocketServer({
   'maxReceivedMessageSize': 10 * 1024 * 1024, // 10 MB
 });
 
+function sendWelcome(clientId, connection) {
+  const payload = {
+    'method': 'connect',
+    'clientId': clientId,
+    'team': team,
+    'master': clients[clientId].master
+  };
+
+  connection.send(JSON.stringify(payload));
+}
+
 wsServer.on('request', request => {
+
   const connection = request.accept(null, request.origin);
   connection.on('open', () => { console.log('Opened'); });
   connection.on('close', () => { console.log('Closed'); });
@@ -28,6 +40,7 @@ wsServer.on('request', request => {
     if (result.method === 'team') {
       team = JSON.parse(result.payload);
       console.log('Got team info. ' + Object.keys(team).length + ' members');
+      sendWelcome(clientId, connection);
     }
   });
 
@@ -39,12 +52,6 @@ wsServer.on('request', request => {
     // First client is the master
     'master': (nClients === 0)
   };
-  const payload = {
-    'method': 'connect',
-    'clientId': clientId,
-    'team': team,
-    'master': clients[clientId].master
-  };
 
-  connection.send(JSON.stringify(payload));
+  sendWelcome(clientId, connection);
 });
