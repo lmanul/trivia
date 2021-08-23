@@ -34,11 +34,11 @@
     }
 
     .avatar-sm {
-        height: 90px;
-        margin: 10px;
+        margin: 2px;
         padding: 10px;
         text-align: center;
-        width: 90px;
+        max-width: 100%;
+        min-width: 32px;
     }
 
     .avatar-sm img {
@@ -47,11 +47,11 @@
 
     .avatar-md {
         display: inline-block;
-        height: 150px;
-        margin: 10px;
+        margin: 3px;
         padding: 10px;
         position: relative;
-        width: 120px;
+        max-width: 100%;
+        min-width: 48px;
     }
 
     .avatar-md img {
@@ -94,6 +94,10 @@
     .answer, .score {
         font-size: 120%;
         font-weight: bold;
+    }
+
+    .score {
+        display: none;
     }
 
     #guess {
@@ -149,6 +153,7 @@
     let myLdap;
     let master = false;
     let stoppedTypingTimeoutId;
+    let phase = 'question';
     let ws = new WebSocket('ws://' + window.location.hostname + ':7071');
     ws.onmessage = handleMessage;
 
@@ -272,20 +277,21 @@
     }
 
     function onHeartbeat(obj) {
-      console.log(obj);
       const typing = obj.typing;
       const answers = obj.answers;
-      let allTypingIndicators = document.querySelectorAll('.typing-indicator');
-      for (let i = 0, el; el = allTypingIndicators[i]; i++) {
-        const ldap = el.getAttribute('data');
-        if (typing.includes(ldap)) {
-          el.textContent = '...';
-          el.style.display = 'block';
-        } else if (answers.hasOwnProperty(ldap)) {
-          el.textContent = '✓';
-          el.style.display = 'block';
-        } else {
-          el.style.display = 'none';
+      if (phase === 'question') {
+        let allTypingIndicators = document.querySelectorAll('.typing-indicator');
+        for (let i = 0, el; el = allTypingIndicators[i]; i++) {
+          const ldap = el.getAttribute('data');
+          if (typing.includes(ldap)) {
+            el.textContent = '...';
+            el.style.display = 'block';
+          } else if (answers.hasOwnProperty(ldap)) {
+            el.textContent = '✓';
+            el.style.display = 'block';
+          } else {
+            el.style.display = 'none';
+          }
         }
       }
     }
@@ -337,29 +343,40 @@
         renderBoard(response.scores);
       }
       if (response.method === 'new-question') {
+        phase = 'question';
+        let allAnswers = document.querySelectorAll('.answer');
+        allAnswers.forEach(function(el) {
+          el.style.display = 'none';
+        });
         const guessContainer = document.getElementById('guess');
         const guessInput = document.getElementById('guess-input');
         guessContainer.style.display = 'block';
         guessInput.removeAttribute('disabled');
         guessInput.value = '';
         guessInput.addEventListener('keypress', onGuessType);
+        guessInput.focus();
         let answerEls = document.querySelectorAll('answer');
         for (let i = 0, el; el = answerEls[i]; i++) {
           el.textContent = '';
         }
       }
       if (response.method === 'end-question') {
+        phase = 'answer';
         const guessContainer = document.getElementById('guess');
         const guessInput = document.getElementById('guess-input');
         guessContainer.style.display = 'none';
         guessInput.removeEventListener('keypress', onGuessType);
+        let allTypingIndicators = document.querySelectorAll('.typing-indicator');
+        allTypingIndicators.forEach(function(el) {
+          el.style.display = 'none';
+        });
 
         let answers = response.answers;
-        console.log(answers);
-        let answerEls = document.querySelectorAll('answer');
+        let answerEls = document.querySelectorAll('.answer');
         for (let i = 0, el; el = answerEls[i]; i++) {
           const ldap = el.getAttribute('data');
-          el.textContent = answers[ldap];
+          el.style.display = 'block';
+          el.textContent = answers[ldap] || '<No answer>';
         }
       }
       if (response.method === 'heartbeat') {
