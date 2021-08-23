@@ -106,7 +106,7 @@
     let clientId;
     let team;
     let myLdap;
-    let ws = new WebSocket('ws://localhost:7071');
+    let ws = new WebSocket('ws://' + window.location.hostname + ':7071');
     ws.onmessage = handleMessage;
 
 
