@@ -123,8 +123,8 @@
     <div id="roster"></div>
     <div id="guess"><input /></div>
     <div id="master-panel">
-      <button id='new-question' onclick="onNewQuestion()">New Question</button>
-      <button id='end-question' onclick="onEndQuestion()">End Question</button>
+      <button id='new-question' onclick="onMasterNewQuestion()">New Question</button>
+      <button id='end-question' onclick="onMasterEndQuestion()">End Question</button>
     </div>
   </div>
 
@@ -233,13 +233,13 @@
         'block' : 'none';
     }
 
-    function onNewQuestion() {
+    function onMasterNewQuestion() {
       ws.send(JSON.stringify({
         'method': 'new-question'
       }));
     }
 
-    function onEndQuestion() {
+    function onMasterEndQuestion() {
       ws.send(JSON.stringify({
         'method': 'end-question'
       }));
