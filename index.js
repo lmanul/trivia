@@ -14,6 +14,7 @@ const HEARTBEAT_INTERVAL_MS = 500;
 const clients = {};
 let team;
 let scores = {};
+let peopleWhoAreTyping = new Set();
 let gameHasStarted = false;
 
 const wsServer = new WebSocketServer({
@@ -73,8 +74,9 @@ function getBoard() {
 
 function heartbeat() {
   broadcast({
-    'method': 'heartbeat'
-  });
+    'method': 'heartbeat',
+    'typing': Array.from(peopleWhoAreTyping)
+  });f
   setTimeout(heartbeat, HEARTBEAT_INTERVAL_MS);
 }
 
@@ -106,6 +108,15 @@ wsServer.on('request', request => {
     }
     if (result.method === 'end-question') {
       broadcast({'method': 'end-question'}, false);
+    }
+    if (result.method === 'typing') {
+      const id = result.clientId;
+      const ldap = clients[clientId].ldap;
+      if (result.flag) {
+        peopleWhoAreTyping.add(ldap);
+      } else {
+        peopleWhoAreTyping.delete(ldap);
+      }
     }
   });
 

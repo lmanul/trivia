@@ -50,11 +50,23 @@
         height: 150px;
         margin: 10px;
         padding: 10px;
+        position: relative;
         width: 120px;
     }
 
     .avatar-md img {
         width: 96px;
+    }
+
+    .typing-indicator {
+        background: rgba(255, 255, 255, 0.7);
+        display: none;
+        font-size: xxx-large;
+        height: 100%;
+        left: 0;
+        position: absolute;
+        top: 0;
+        width: 100%;
     }
 
     .avatar-sm div {
@@ -129,10 +141,12 @@
   </div>
 
   <script>
+    const TYPING_INTERVAL_MS = 1000
     let clientId;
     let team;
     let myLdap;
     let master = false;
+    let stoppedTypingTimeoutId;
     let ws = new WebSocket('ws://' + window.location.hostname + ':7071');
     ws.onmessage = handleMessage;
 
@@ -164,6 +178,13 @@
                             'data:image/png;base64,' + team[ldap].avatar);
       personEl.appendChild(avatarEl);
       personEl.appendChild(nameEl);
+      if (size === 'md') {
+        let typingIndicator = document.createElement('div');
+        typingIndicator.setAttribute('data', ldap);
+        typingIndicator.classList.add('typing-indicator');
+        typingIndicator.textContent = '...';
+        personEl.appendChild(typingIndicator);
+      }
       return personEl;
     }
 
@@ -247,6 +268,34 @@
 
     function onHeartbeat(obj) {
       console.log(obj);
+      const typing = obj.typing;
+      let allTypingIndicators = document.querySelectorAll('.typing-indicator');
+      for (let i = 0, el; el = allTypingIndicators[i]; i++) {
+        if (typing.includes(el.getAttribute('data'))) {
+          el.style.display = 'block';
+        } else {
+          el.style.display = 'none';
+        }
+      }
+    }
+
+    function onGuessType() {
+      if (!!stoppedTypingTimeoutId) {
+        window.clearTimeout(stoppedTypingTimeoutId);
+      }
+      ws.send(JSON.stringify({
+        'method': 'typing',
+        'clientId': clientId,
+        'flag': true
+      }));
+      stoppedTypingTimeoutId = window.setTimeout(function() {
+        stoppedTypingTimeoutId = null;
+        ws.send(JSON.stringify({
+          'method': 'typing',
+          'clientId': clientId,
+          'flag': false
+        }));
+      }, TYPING_INTERVAL_MS);
     }
 
     function handleMessage(message) {
@@ -268,10 +317,14 @@
         renderBoard(response.scores);
       }
       if (response.method === 'new-question') {
-        document.getElementById('guess').style.display = 'block';
+        const guessInput = document.getElementById('guess');
+        guessInput.style.display = 'block';
+        guessInput.addEventListener('keypress', onGuessType);
       }
       if (response.method === 'end-question') {
-        document.getElementById('guess').style.display = 'none';
+        const guessInput = document.getElementById('guess');
+        guessInput.style.display = 'none';
+        guessInput.removeEventListener('keypress', onGuessType);
       }
       if (response.method === 'heartbeat') {
         onHeartbeat(response);
