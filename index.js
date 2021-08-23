@@ -90,6 +90,9 @@ wsServer.on('request', request => {
     if (result.method === 'new-question') {
       broadcast({'method': 'new-question'}, false);
     }
+    if (result.method === 'end-question') {
+      broadcast({'method': 'end-question'}, false);
+    }
   });
 
   const nClients = Object.keys(clients).length;

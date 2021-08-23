@@ -97,6 +97,12 @@
 
     #master-panel {
         display: none;
+        font-size: x-large;
+        text-align: center;
+    }
+
+    #master-panel button {
+        cursor: pointer;
     }
 
   </style>
@@ -118,6 +124,7 @@
     <div id="guess"><input /></div>
     <div id="master-panel">
       <button id='new-question' onclick="onNewQuestion()">New Question</button>
+      <button id='end-question' onclick="onEndQuestion()">End Question</button>
     </div>
   </div>
 
@@ -232,6 +239,12 @@
       }));
     }
 
+    function onEndQuestion() {
+      ws.send(JSON.stringify({
+        'method': 'end-question'
+      }));
+    }
+
     function handleMessage(message) {
       console.log('Message from server');
       const response = JSON.parse(message.data);
@@ -254,6 +267,9 @@
       }
       if (response.method === 'new-question') {
         document.getElementById('guess').style.display = 'block';
+      }
+      if (response.method === 'end-question') {
+        document.getElementById('guess').style.display = 'none';
       }
     }
 
