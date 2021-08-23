@@ -110,7 +110,10 @@ wsServer.on('request', request => {
       broadcast({'method': 'new-question'}, false);
     }
     if (result.method === 'end-question') {
-      broadcast({'method': 'end-question'}, false);
+      broadcast({
+        'method': 'end-question',
+        'answers': answers
+      }, false);
     }
     if (result.method === 'typing') {
       const id = result.clientId;
@@ -124,6 +127,7 @@ wsServer.on('request', request => {
     if (result.method === 'answer') {
       const id = result.clientId;
       const ldap = clients[clientId].ldap;
+      peopleWhoAreTyping.delete(ldap);
       answers[ldap] = result.answer;
       console.log(answers);
     }

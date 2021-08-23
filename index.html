@@ -91,7 +91,7 @@
         flex-direction: row;
     }
 
-    .score {
+    .answer, .score {
         font-size: 120%;
         font-weight: bold;
     }
@@ -133,7 +133,9 @@
 
   <div id="board" class="screen">
     <div id="roster"></div>
-    <div id="guess"><input id="guess-input" /></div>
+    <div id="guess">
+      <input id="guess-input" size="30"
+             placeholder="Type your answer, [Enter] when you're done" /></div>
     <div id="master-panel">
       <button id='new-question' onclick="onMasterNewQuestion()">New Question</button>
       <button id='end-question' onclick="onMasterEndQuestion()">End Question</button>
@@ -238,9 +240,13 @@
       console.log(ldaps);
       for (let ldap of ldaps.sort()) {
         let avatar = getAvatar(ldap, 'md');
+        let answerEl = document.createElement('div');
+        answerEl.classList.add('answer');
+        answerEl.setAttribute('data', ldap);
         let scoreEl = document.createElement('div');
         scoreEl.textContent = scores[ldap];
         scoreEl.classList.add('score');
+        avatar.appendChild(answerEl);
         avatar.appendChild(scoreEl);
         rosterEl.appendChild(avatar);
       }
@@ -337,12 +343,24 @@
         guessInput.removeAttribute('disabled');
         guessInput.value = '';
         guessInput.addEventListener('keypress', onGuessType);
+        let answerEls = document.querySelectorAll('answer');
+        for (let i = 0, el; el = answerEls[i]; i++) {
+          el.textContent = '';
+        }
       }
       if (response.method === 'end-question') {
         const guessContainer = document.getElementById('guess');
         const guessInput = document.getElementById('guess-input');
         guessContainer.style.display = 'none';
         guessInput.removeEventListener('keypress', onGuessType);
+
+        let answers = response.answers;
+        console.log(answers);
+        let answerEls = document.querySelectorAll('answer');
+        for (let i = 0, el; el = answerEls[i]; i++) {
+          const ldap = el.getAttribute('data');
+          el.textContent = answers[ldap];
+        }
       }
       if (response.method === 'heartbeat') {
         onHeartbeat(response);
