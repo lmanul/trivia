@@ -85,7 +85,18 @@
     }
 
     #guess {
+        display: none;
+        text-align: center;
+    }
+
+    #guess input {
         font-size: xx-large;
+        margin: 2ex;
+        padding: 0.5ex;
+    }
+
+    #master-panel {
+        display: none;
     }
 
   </style>
@@ -104,13 +115,17 @@
 
   <div id="board" class="screen">
     <div id="roster"></div>
-    <div><input id="guess" /></div>
+    <div id="guess"><input /></div>
+    <div id="master-panel">
+      <button id='new-question' onclick="onNewQuestion()">New Question</button>
+    </div>
   </div>
 
   <script>
     let clientId;
     let team;
     let myLdap;
+    let master = false;
     let ws = new WebSocket('ws://' + window.location.hostname + ':7071');
     ws.onmessage = handleMessage;
 
@@ -144,6 +159,7 @@
       personEl.appendChild(nameEl);
       return personEl;
     }
+
     function renderTeamDataChooser() {
       selectScreen('team-data-chooser');
       const chooserEl = document.getElementById('team-data-chooser');
@@ -206,6 +222,14 @@
     function renderBoard(scores) {
       selectScreen('board');
       renderRoster(scores);
+      document.getElementById('master-panel').style.display = master ?
+        'block' : 'none';
+    }
+
+    function onNewQuestion() {
+      ws.send(JSON.stringify({
+        'method': 'new-question'
+      }));
     }
 
     function handleMessage(message) {
@@ -220,12 +244,16 @@
           renderWelcome();
         } else {
           if (response.master) {
+            master = true;
             renderTeamDataChooser();
           }
         }
       }
       if (response.method === 'board') {
         renderBoard(response.scores);
+      }
+      if (response.method === 'new-question') {
+        document.getElementById('guess').style.display = 'block';
       }
     }
 

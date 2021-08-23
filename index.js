@@ -44,27 +44,28 @@ function getConnectedLdaps() {
   return ldaps;
 }
 
-function broadcastBoard() {
+function broadcast(obj, evenIfNotIdentified) {
   for (const [clientId, clientInfo] of Object.entries(clients)) {
-    if (!!clientInfo.ldap) {
-      // Don't send the board if the client hasn't identified themselves yet.
-      sendBoard(clientInfo.connection);
+    if (!!clientInfo.ldap || evenIfNotIdentified) {
+      // Don't send the board if the client hasn't identified themselves yet,
+      // unless the corresponding flag is true.
+      // sendBoard(clientInfo.connection);
+      clientInfo.connection.send(JSON.stringify(obj));
     }
   }
 }
 
-function sendBoard(connection) {
-
+function getBoard() {
   const connectedLdaps = getConnectedLdaps();
   for (let ldap of connectedLdaps) {
     if (!scores.hasOwnProperty(ldap)) {
       scores[ldap] = 0;
     }
   }
-  connection.send(JSON.stringify({
+  return  {
     'method': 'board',
     'scores': scores
-  }));
+  };
 }
 
 wsServer.on('request', request => {
@@ -83,7 +84,11 @@ wsServer.on('request', request => {
     if (result.method === 'whoami') {
       console.log('This client says they are: ' + result.payload);
       clients[clientId].ldap = result.payload;
-      broadcastBoard();
+      const board = getBoard();
+      broadcast(board, false);
+    }
+    if (result.method === 'new-question') {
+      broadcast({'method': 'new-question'}, false);
     }
   });
 
