@@ -15,6 +15,7 @@ const clients = {};
 let team;
 let scores = {};
 let peopleWhoAreTyping = new Set();
+let answers = {};
 let gameHasStarted = false;
 
 const wsServer = new WebSocketServer({
@@ -75,8 +76,9 @@ function getBoard() {
 function heartbeat() {
   broadcast({
     'method': 'heartbeat',
+    'answers': answers,
     'typing': Array.from(peopleWhoAreTyping)
-  });f
+  });
   setTimeout(heartbeat, HEARTBEAT_INTERVAL_MS);
 }
 
@@ -104,6 +106,7 @@ wsServer.on('request', request => {
         heartbeat();
         gameHasStarted = true;
       }
+      answers = {};
       broadcast({'method': 'new-question'}, false);
     }
     if (result.method === 'end-question') {
@@ -117,6 +120,12 @@ wsServer.on('request', request => {
       } else {
         peopleWhoAreTyping.delete(ldap);
       }
+    }
+    if (result.method === 'answer') {
+      const id = result.clientId;
+      const ldap = clients[clientId].ldap;
+      answers[ldap] = result.answer;
+      console.log(answers);
     }
   });
 

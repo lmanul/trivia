@@ -133,7 +133,7 @@
 
   <div id="board" class="screen">
     <div id="roster"></div>
-    <div id="guess"><input /></div>
+    <div id="guess"><input id="guess-input" /></div>
     <div id="master-panel">
       <button id='new-question' onclick="onMasterNewQuestion()">New Question</button>
       <button id='end-question' onclick="onMasterEndQuestion()">End Question</button>
@@ -182,7 +182,6 @@
         let typingIndicator = document.createElement('div');
         typingIndicator.setAttribute('data', ldap);
         typingIndicator.classList.add('typing-indicator');
-        typingIndicator.textContent = '...';
         personEl.appendChild(typingIndicator);
       }
       return personEl;
@@ -269,9 +268,15 @@
     function onHeartbeat(obj) {
       console.log(obj);
       const typing = obj.typing;
+      const answers = obj.answers;
       let allTypingIndicators = document.querySelectorAll('.typing-indicator');
       for (let i = 0, el; el = allTypingIndicators[i]; i++) {
-        if (typing.includes(el.getAttribute('data'))) {
+        const ldap = el.getAttribute('data');
+        if (typing.includes(ldap)) {
+          el.textContent = '...';
+          el.style.display = 'block';
+        } else if (answers.hasOwnProperty(ldap)) {
+          el.textContent = '✓';
           el.style.display = 'block';
         } else {
           el.style.display = 'none';
@@ -279,23 +284,32 @@
       }
     }
 
-    function onGuessType() {
+    function onGuessType(e) {
       if (!!stoppedTypingTimeoutId) {
         window.clearTimeout(stoppedTypingTimeoutId);
       }
-      ws.send(JSON.stringify({
-        'method': 'typing',
-        'clientId': clientId,
-        'flag': true
-      }));
-      stoppedTypingTimeoutId = window.setTimeout(function() {
-        stoppedTypingTimeoutId = null;
+      if (e.key === 'Enter') {
+        const guessInput = document.getElementById('guess-input');
+        guessInput.setAttribute('disabled', true);
+        ws.send(JSON.stringify({
+          'method': 'answer',
+          'answer': document.getElementById('guess-input').value
+        }));
+      } else {
         ws.send(JSON.stringify({
           'method': 'typing',
           'clientId': clientId,
-          'flag': false
+          'flag': true
         }));
-      }, TYPING_INTERVAL_MS);
+        stoppedTypingTimeoutId = window.setTimeout(function() {
+          stoppedTypingTimeoutId = null;
+          ws.send(JSON.stringify({
+            'method': 'typing',
+            'clientId': clientId,
+            'flag': false
+          }));
+        }, TYPING_INTERVAL_MS);
+      }
     }
 
     function handleMessage(message) {
@@ -317,13 +331,17 @@
         renderBoard(response.scores);
       }
       if (response.method === 'new-question') {
-        const guessInput = document.getElementById('guess');
-        guessInput.style.display = 'block';
+        const guessContainer = document.getElementById('guess');
+        const guessInput = document.getElementById('guess-input');
+        guessContainer.style.display = 'block';
+        guessInput.removeAttribute('disabled');
+        guessInput.value = '';
         guessInput.addEventListener('keypress', onGuessType);
       }
       if (response.method === 'end-question') {
-        const guessInput = document.getElementById('guess');
-        guessInput.style.display = 'none';
+        const guessContainer = document.getElementById('guess');
+        const guessInput = document.getElementById('guess-input');
+        guessContainer.style.display = 'none';
         guessInput.removeEventListener('keypress', onGuessType);
       }
       if (response.method === 'heartbeat') {
