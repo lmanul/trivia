@@ -9,9 +9,12 @@ const httpServer = http.createServer();
 
 httpServer.listen(7071, () => { console.log('Listening on port 7071'); })
 
+const HEARTBEAT_INTERVAL_MS = 500;
+
 const clients = {};
 let team;
 let scores = {};
+let gameHasStarted = false;
 
 const wsServer = new WebSocketServer({
   'httpServer': httpServer,
@@ -68,6 +71,13 @@ function getBoard() {
   };
 }
 
+function heartbeat() {
+  broadcast({
+    'method': 'heartbeat'
+  });
+  setTimeout(heartbeat, HEARTBEAT_INTERVAL_MS);
+}
+
 wsServer.on('request', request => {
 
   const connection = request.accept(null, request.origin);
@@ -88,6 +98,10 @@ wsServer.on('request', request => {
       broadcast(board, false);
     }
     if (result.method === 'new-question') {
+      if (!gameHasStarted) {
+        heartbeat();
+        gameHasStarted = true;
+      }
       broadcast({'method': 'new-question'}, false);
     }
     if (result.method === 'end-question') {
