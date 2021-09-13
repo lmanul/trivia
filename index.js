@@ -56,7 +56,6 @@ function broadcast(obj, evenIfNotIdentified) {
     if (!!clientInfo.ldap || evenIfNotIdentified) {
       // Don't send the board if the client hasn't identified themselves yet,
       // unless the corresponding flag is true.
-      // sendBoard(clientInfo.connection);
       clientInfo.connection.send(JSON.stringify(obj));
     }
   }
