@@ -41,7 +41,9 @@ function getConnectedLdaps() {
     let ldap = Object.keys(team)[i];
     for (let j = 0; j < Object.keys(clients).length; j++) {
       const clientId = Object.keys(clients)[j];
-      if (!!clients[clientId].ldap && clients[clientId].ldap === ldap) {
+      // Don't list 'master' in the roster of connected people.
+      if (!!clients[clientId].ldap && clients[clientId].ldap === ldap &&
+          !clients[clientId].master) {
         ldaps.push(ldap);
       }
     }
