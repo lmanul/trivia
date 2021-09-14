@@ -78,7 +78,8 @@ function heartbeat() {
   broadcast({
     'method': 'heartbeat',
     'answers': answers,
-    'typing': Array.from(peopleWhoAreTyping)
+    'typing': Array.from(peopleWhoAreTyping),
+    'scores': scores
   });
   setTimeout(heartbeat, HEARTBEAT_INTERVAL_MS);
 }
@@ -131,6 +132,13 @@ wsServer.on('request', request => {
       peopleWhoAreTyping.delete(ldap);
       answers[ldap] = result.answer;
       console.log(answers);
+    }
+    if (result.method === 'incrementscore') {
+      const ldap = result.ldap;
+      if (!scores.hasOwnProperty(ldap)) {
+        scores[ldap] = 0;
+      }
+      scores[ldap] += 1;
     }
   });
 

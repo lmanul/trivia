@@ -212,9 +212,13 @@
           let rightAnswer = document.createElement('button');
           rightAnswer.className = 'right';
           rightAnswer.textContent = '✅';
+          rightAnswer.setAttribute('data', ldap);
+          rightAnswer.onclick = onRight;
           let wrongAnswer = document.createElement('button');
           wrongAnswer.className = 'wrong';
           wrongAnswer.textContent = '❎';
+          wrongAnswer.setAttribute('data', ldap);
+          wrongAnswer.onClick = onWrong;
           personEl.appendChild(rightAnswer);
           personEl.appendChild(wrongAnswer);
         }
@@ -307,6 +311,7 @@
     function onHeartbeat(obj) {
       const typing = obj.typing;
       const answers = obj.answers;
+      const scores = obj.scores;
       if (phase === 'question') {
         let allTypingIndicators = document.querySelectorAll('.typing-indicator');
         for (let i = 0, el; el = allTypingIndicators[i]; i++) {
@@ -319,6 +324,17 @@
             el.style.display = 'block';
           } else {
             el.style.display = 'none';
+          }
+        }
+      }
+      if (phase === 'answer') {
+        let ldaps = Object.keys(scores);
+        for (let i = 0; i < ldaps.length; i++) {
+          const ldap = ldaps[i];
+          const scoreEl = document.querySelector(
+            'div[data="' + ldap + '"] div.score');
+          if (scoreEl) {
+            scoreEl.textContent = scores[ldap];
           }
         }
       }
@@ -350,6 +366,19 @@
           }));
         }, TYPING_INTERVAL_MS);
       }
+    }
+
+    function onRight(e) {
+      const ldap = e.target.getAttribute('data');
+      ws.send(JSON.stringify({
+        'method': 'incrementscore',
+        'ldap': ldap
+      }));
+    }
+
+    function onWrong(e) {
+      const ldap = e.target.getAttribute('data');
+      // Nothing to do, really.
     }
 
     function updatePhase(phaseName) {
