@@ -99,6 +99,25 @@
     .score {
     }
 
+    button.right, button.wrong {
+        font-size: xx-large;
+        margin: 10px;
+        padding: 10px;
+    }
+
+    /* Don't show right/wrong buttons in the question phase. */
+    body.question button.right, body.question button.wrong {
+        display: none;
+    }
+
+    button.right {
+        background-color: green;
+    }
+
+    button.wrong{
+        background-color: red;
+    }
+
     #guess {
         display: none;
         text-align: center;
@@ -122,7 +141,7 @@
 
   </style>
 </head>
-<body onload="init()">
+<body onload="init()" class="question">
 
   <div id="loading" class="screen">Loading...</div>
 
@@ -189,6 +208,16 @@
         typingIndicator.setAttribute('data', ldap);
         typingIndicator.classList.add('typing-indicator');
         personEl.appendChild(typingIndicator);
+        if (master) {
+          let rightAnswer = document.createElement('button');
+          rightAnswer.className = 'right';
+          rightAnswer.textContent = '✅';
+          let wrongAnswer = document.createElement('button');
+          wrongAnswer.className = 'wrong';
+          wrongAnswer.textContent = '❎';
+          personEl.appendChild(rightAnswer);
+          personEl.appendChild(wrongAnswer);
+        }
       }
       return personEl;
     }
@@ -323,6 +352,11 @@
       }
     }
 
+    function updatePhase(phaseName) {
+      phase = phaseName;
+      document.body.className = phaseName;
+    }
+
     function handleMessage(message) {
       const response = JSON.parse(message.data);
       if (response.method === 'connect') {
@@ -342,7 +376,7 @@
         renderBoard(response.scores);
       }
       if (response.method === 'new-question') {
-        phase = 'question';
+        updatePhase('question');
         let allAnswers = document.querySelectorAll('.answer');
         allAnswers.forEach(function(el) {
           el.style.display = 'none';
@@ -360,7 +394,7 @@
         }
       }
       if (response.method === 'end-question') {
-        phase = 'answer';
+        updatePhase('answer');
         const guessContainer = document.getElementById('guess');
         const guessInput = document.getElementById('guess-input');
         guessContainer.style.display = 'none';
@@ -374,6 +408,9 @@
         let answerEls = document.querySelectorAll('.answer');
         for (let i = 0, el; el = answerEls[i]; i++) {
           const ldap = el.getAttribute('data');
+          if (!ldap) {
+            continue;
+          }
           el.style.display = 'block';
           el.textContent = answers[ldap] || '<No answer>';
         }
