@@ -100,6 +100,7 @@
     }
 
     button.right, button.wrong {
+        color: white;
         font-size: xx-large;
         margin: 10px;
         padding: 10px;
@@ -211,12 +212,12 @@
         if (master) {
           let rightAnswer = document.createElement('button');
           rightAnswer.className = 'right';
-          rightAnswer.textContent = '✅';
+          rightAnswer.textContent = '✓';
           rightAnswer.setAttribute('data', ldap);
           rightAnswer.onclick = onRight;
           let wrongAnswer = document.createElement('button');
           wrongAnswer.className = 'wrong';
-          wrongAnswer.textContent = '❎';
+          wrongAnswer.textContent = '✖';
           wrongAnswer.setAttribute('data', ldap);
           wrongAnswer.onClick = onWrong;
           personEl.appendChild(rightAnswer);
